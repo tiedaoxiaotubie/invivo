@@ -274,7 +274,9 @@ symbolic = { DO_CCALLS, SYMBOLIC, TRACK_CONSTRAINTS, SYMBOLIC_INITIAL_VALUES, CO
 simplification = { SIMPLIFY_MEMORY_WRITES, SIMPLIFY_REGISTER_WRITES }
 common_options = { DO_GETS, DO_PUTS, DO_LOADS, DO_OPS, COW_STATES, DO_STORES, OPTIMIZE_IR, TRACK_MEMORY_MAPPING, SUPPORT_FLOATING_POINT, EXTENDED_IROP_SUPPORT } | simplification
 unicorn = { UNICORN, UNICORN_SYM_REGS_SUPPORT, INITIALIZE_ZERO_REGISTERS, UNICORN_HANDLE_TRANSMIT_SYSCALL, UNICORN_TRACK_BBL_ADDRS, UNICORN_TRACK_STACK_POINTERS }
-
+#enable invivo_engine
+INVIVO = "INVIVO"
+invivo = {INVIVO}     #if we add a option ,such as "add_option = invivo" ,means that we use invivo_engine
 modes = {
     'symbolic': common_options | symbolic | { TRACK_CONSTRAINT_ACTIONS }, #| approximation | { VALIDATE_APPROXIMATIONS }
     'symbolic_approximating': common_options | symbolic | approximation | { TRACK_CONSTRAINT_ACTIONS },

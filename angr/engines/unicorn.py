@@ -85,11 +85,12 @@ class SimEngineUnicorn(SimEngine):
         if o.UNICORN not in state.options:
             return
         if extra_stop_points is None:
-            extra_stop_points = set(self.base_stop_points)
+            #extra_stop_points = set(self.base_stop_points)!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+            extra_stop_points = None
         else:
             # convert extra_stop_points to a set
             extra_stop_points = set(extra_stop_points)
-            extra_stop_points.update(self.base_stop_points)
+            #extra_stop_points.update(self.base_stop_points)!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
         if successors.addr in extra_stop_points:
             return  # trying to start unicorn execution on a stop point
 

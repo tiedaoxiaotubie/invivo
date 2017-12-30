@@ -211,11 +211,12 @@ class Project(object):
         unicorn_engine = SimEngineUnicorn(self._sim_procedures)
 
         self.entry = self.loader.main_object.entry
+        invivo_engine = SimEngineInVivo(self)
         self.factory = AngrObjectFactory(
                 self,
                 engine,
                 procedure_engine,
-                [failure_engine, syscall_engine, hook_engine, unicorn_engine, engine])
+                [failure_engine, syscall_engine, invivo_engine,hook_engine, unicorn_engine, engine])
         self.analyses = Analyses(self)
         self.surveyors = Surveyors(self)
         self.kb = KnowledgeBase(self, self.loader.main_object)
@@ -661,5 +662,5 @@ from angr.simos import SimOS, os_mapping
 from .analyses.analysis import Analyses
 from .surveyors import Surveyors
 from .knowledge_base import KnowledgeBase
-from .engines import SimEngineFailure, SimEngineSyscall, SimEngineProcedure, SimEngineVEX, SimEngineUnicorn, SimEngineHook
+from .engines import SimEngineFailure, SimEngineSyscall, SimEngineProcedure, SimEngineVEX, SimEngineUnicorn, SimEngineHook, SimEngineInVivo
 from .procedures import SIM_PROCEDURES, SIM_LIBRARIES
