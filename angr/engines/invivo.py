@@ -107,18 +107,19 @@ class SimEngineInVivo(SimEngine):
         return invivo_state with concrete parameters
         '''
         SIM_LIBRARIES = angr.procedures.definitions.SIM_LIBRARIES
-        #First we need to get all parameters in BVS
+        
+        #First,we get the func'type
+        self.argtype = angr.SIM_PROTOTYPES['libc'][func_name]
+        calling_convention = self._get_args_type(func_name)
+        self.arg_locs = calling_convention.arg_locs()
+        #Second,get number of parameters
         if self.num_args is None:
-            self.num_args = self._get_args_num(state,func_name,SIM_LIBRARIES) #This function will be replaced by API provided by fish!!! hardcode now!!!
-        #Second,phrase parameters
+            self.num_args = len(self.argtype.args)
+        #Third,phrase all parameters
         if self.arguments is None:
             self._simcc = state.project.factory.cc() 
             sim_args = [ self._simcc.arg(state, _) for _ in xrange(self.num_args) ]
-            self.arguments = sim_args            
-        #Third,we get the func'type
-        self.argtype = angr.SIM_PROTOTYPES['libc'][func_name]
-        calling_convention = self._get_args_type(func_name)
-        self.arg_locs = calling_convention.arg_locs().args
+            self.arguments = sim_args                 
         #we should concrete all parameters
         for n in xrange(len(self.arguments)):
             if self.arguments[n].symbolic:    #all parameters must be concrete!
