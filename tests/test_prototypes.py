@@ -18,6 +18,7 @@ def test_function_prototype():
         proj.arch,
         func_ty=func.prototype,
     )
+    a = 1
 
     # import ipdb; ipdb.set_trace()
 

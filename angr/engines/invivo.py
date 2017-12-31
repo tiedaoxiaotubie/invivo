@@ -34,6 +34,16 @@ class SimEngineInVivo(SimEngine):
             for caller_addr in caller:
                 libc_caller.append(caller_addr)
 
+        #just for test!!! would be changed by a whilte list
+        callread_addr = 0x8048310
+        tl = []
+        caller = callgraph.predecessors(callread_addr)
+        for caller_addr in caller:
+            tl.append(caller_addr)
+        caller_addr = tl[0]
+        if state.addr != caller_addr:
+            return False
+
         # check If the func is a libc func
         if state.addr not in libc_caller:
             return False
@@ -49,6 +59,8 @@ class SimEngineInVivo(SimEngine):
         self.arguments = None #arguments of the function to be concrete executed
         self.num_args = None #The number of arguments
         self._simcc = None
+        self.argtype = None
+        self.arg_locs = None
         
         #get the lic_func's name and ret_addr
         libc_caller = []
@@ -97,13 +109,17 @@ class SimEngineInVivo(SimEngine):
         SIM_LIBRARIES = angr.procedures.definitions.SIM_LIBRARIES
         #First we need to get all parameters in BVS
         if self.num_args is None:
-            self.num_args = self._get_args_num(state,func_name,SIM_LIBRARIES) #This function will be replaced by API provided by fish!!! hardcode now!!!   
+            self.num_args = self._get_args_num(state,func_name,SIM_LIBRARIES) #This function will be replaced by API provided by fish!!! hardcode now!!!
         #Second,phrase parameters
         if self.arguments is None:
             self._simcc = state.project.factory.cc() 
             sim_args = [ self._simcc.arg(state, _) for _ in xrange(self.num_args) ]
             self.arguments = sim_args            
-        #Third,we concrete all parameters  
+        #Third,we get the func'type
+        self.argtype = angr.SIM_PROTOTYPES['libc'][func_name]
+        calling_convention = self._get_args_type(func_name)
+        self.arg_locs = calling_convention.arg_locs().args
+        #we should concrete all parameters
         for n in xrange(len(self.arguments)):
             if self.arguments[n].symbolic:    #all parameters must be concrete!
                 self.arguments[n] = state.se.solve(self.arguments[n]) #NOT SURE! CHECK IT!
@@ -125,12 +141,23 @@ class SimEngineInVivo(SimEngine):
         successors.add_successor(state, state.ip, state.se.true, state.unicorn.jumpkind)#NOT SURE!!!!
     
         successors.description = description
-        successors.processed = True        
+        successors.processed = True
+
+    def _get_args_type(self,func_name):
+        proj = self.project
+        prototype = angr.SIM_PROTOTYPES['libc'][func_name]
+        calling_convention = angr.calling_conventions.DEFAULT_CC[proj.arch.name](
+            proj.arch,
+            func_ty=prototype,
+        )
+
+        return calling_convention
+
     def _get_args_num(self,state,func_name,SIM_LIBRARIES):
         '''
         FIX IT!
         This function is just for testing,because we are waitting fish!!!
-        '''   
+        '''
         #return corresponding args_num,each function has hardcoded args_num
         args_num = None
         if func_name not in self._all_func_name: #we only process function in libc!!!
@@ -141,7 +168,7 @@ class SimEngineInVivo(SimEngine):
         reloc_AND_name = {}  # value is reloc,key is the function's name,
         for obj in self.project.loader.initial_load_objects:
             for reloc in obj.imports.itervalues():
-                reloc_AND_name[reloc.symbol.name] = reloc 
+                reloc_AND_name[reloc.symbol.name] = reloc
         for libc_name in reloc_AND_name.keys():
             if func_name == libc_name:
                 reloc = reloc_AND_name[libc_name]
@@ -151,8 +178,8 @@ class SimEngineInVivo(SimEngine):
         if not sim_lib.has_implementation(export.name):
             raise Exception #FIX IT
         simprocedure = sim_lib.get(func_name, self.project.arch)
-        
-        return simprocedure.num_args  
+
+        return simprocedure.num_args
     def _get_libc_addr(self):
         """
         This scans through an objects imports and hooks them with simprocedures from our library whenever possible
